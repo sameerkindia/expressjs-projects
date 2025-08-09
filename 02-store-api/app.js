@@ -1,31 +1,35 @@
-const express = require('express')
-const app = express()
-const router = require('./routes/product')
-const connectToDB = require('./db/connect')
+const express = require("express");
+const app = express();
+const router = require("./routes/product");
+const connectToDB = require("./db/connect");
 
-require('dotenv').config()
+const errorMiddleware = require("./middlewares/error-handler");
+const notFoundMiddleware = require("./middlewares/not-found");
 
+require("dotenv").config();
+require('express-async-errors')
 
 // app.get('/', (req,res)=>{
 //     res.send('setup is working')
 // })
 
-app.use('/api/v1/' , router)
+app.use(express.json());
 
-port = process.env.PORT
+app.use("/api/v1/products", router);
 
-const start = async ()=>{
-    try {
-     await connectToDB(process.env.MONGO_URL)
-     console.log('DB connected')
-     app.listen(5000, ()=>{
-         console.log('app is running on port 500')
-     })
-        
-    } catch (error) {
-        
-    }
-}
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);
 
+const port = process.env.PORT || 5000;
 
-start()
+const start = async () => {
+  try {
+    await connectToDB(process.env.MONGO_URL);
+    console.log("DB connected");
+    app.listen(5000, () => {
+      console.log(`app is running on port ${port}`);
+    });
+  } catch (error) {}
+};
+
+start();
